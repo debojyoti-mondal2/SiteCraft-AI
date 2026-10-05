@@ -3,16 +3,14 @@ import readlinesync from "readline-sync";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import "dotenv/config"; // Make sure to use this!
+import "dotenv/config"; 
 
 const platform = os.platform();
 const History = [];
 
 const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY, // Use dotenv, do not hardcode your key!
-});
-
-// ---------- Tools: these write files directly, no shell/PowerShell involved ----------
+  apiKey: process.env.GEMINI_API_KEY, 
+})
 
 async function createFolder({ folderPath }) {
   try {
@@ -73,8 +71,6 @@ const availableTools = {
   writeFile,
 };
 
-// ---------- Agent loop: keeps calling tools until the model has no more calls left ----------
-
 async function runAgent(userProblem) {
   History.push({
     role: "user",
@@ -83,7 +79,7 @@ async function runAgent(userProblem) {
 
   while (true) {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite", // verify the exact valid model string in your Gemini console/docs
+      model: "gemini-3.1-flash-lite", 
       contents: History,
       config: {
         systemInstruction: `You are a website builder agent. You build real, complete, working websites directly on disk using your tools — you never ask the user to run any terminal command yourself.
@@ -114,7 +110,7 @@ Never output PowerShell, bash, mkdir, touch, or any other shell command as text.
       console.log(`\n> ${name}(${JSON.stringify(args).slice(0, 80)}...)`);
       console.log(`  ${result}`);
 
-      // FIXED: Push the entire unaltered model response payload to preserve thought_signatures
+      
       History.push(response.candidates[0].content);
 
       History.push({
@@ -128,9 +124,7 @@ Never output PowerShell, bash, mkdir, touch, or any other shell command as text.
           },
         ],
       });
-      // loop continues automatically — no user input needed between tool calls
     } else {
-      // FIXED: Also use the raw payload here just to be completely safe
       History.push(response.candidates[0].content);
       
       console.log("\n" + response.text);
